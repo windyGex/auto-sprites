@@ -209,6 +209,7 @@ var MergeImage = util.inherit(Object, {
     },
 
     replaceBackgroundInfo: function (imageUrl, style) {
+
         style.cssRules.forEach(function (rule) {
             rule.setProperty('background-image', 'url(' + imageUrl + ')', '');
             var position = rule['background-position'];

@@ -36,7 +36,7 @@ var util = require('pegasus').util,
         },
         { //http://www.w3schools.com/cssref/css_colors_legal.asp
             //匹配数字颜色的正则
-            reg: /(#([0-9a-f]{3}|[0-9a-f]{6})\b)/,
+            reg: /(#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})\b)/,
             callback: function (result, match) {
                 result['background-color'] = match[0];
             }
@@ -90,7 +90,6 @@ var ParseRules = util.inherit(Object, {
         return result;
     },
     mergeStyle: function (style, result) {
-        console.log(result);
         for (var key in result) {
             if (result.hasOwnProperty(key)) {
                 //忽略已经存在的属性
