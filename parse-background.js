@@ -110,7 +110,7 @@ var ParseRules = util.inherit(Object, {
             url = url[2];
             //去除掉http引用的情况
             url = url.replace(/(http:\/\/.*)(\/simg\/.*)/, function ($1, $2, $3) {
-               return $3;
+                return $3;
             });
             url = url.replace(/(http:\/\/.*)(\/wimg\/.*)/, function ($1, $2, $3) {
                 return $3;
@@ -185,7 +185,7 @@ var ParseRules = util.inherit(Object, {
                 }
 
                 if (style['background-image']) {
-                    if (style['background-repeat'] == 'repeat' || !style['background-repeat'] || style['background-position'].match(/center/)) {
+                    if (style['background-repeat'] == 'repeat' || !style['background-repeat'] || (style['background-position'] && style['background-position'].match(/center/))) {
                         return;
                     }
                     layout = self.getLayoutType(style);

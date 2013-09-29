@@ -27,33 +27,33 @@ var MergeImage = util.inherit(Object, {
     parse: function (callback) {
         var self = this;
         asyncUtil.forEach(this.rulesResult,function(url,smartItem,next){
-             var imageMeta = {},size;
-             if(self._imageMetaCache[url]){
-                 imageMeta = self._imageMetaCache[url];
-                 size = self.getRulesMaxSize(smartItem,imageMeta);
-                 smartItem.w = size.w;
-                 smartItem.h = size.h;
-                 smartItem.imageMeta = imageMeta;
-                 next();
-             }else{
-                 gd.openPng(url, function (err, png) {
-                     if (err) {
-                         next();
-                     } else {
-                         if (png) {
-                             imageMeta.image = png;
-                             imageMeta.width = png.width;
-                             imageMeta.height = png.height;
-                             size = self.getRulesMaxSize(smartItem,imageMeta);
-                             smartItem.w = size.w;
-                             smartItem.h = size.h;
-                             self._imageMetaCache[url] = imageMeta;
-                             smartItem.imageMeta = imageMeta;
-                             next();
-                         }
-                     }
-                 });
-             }
+            var imageMeta = {},size;
+            if(self._imageMetaCache[url]){
+                imageMeta = self._imageMetaCache[url];
+                size = self.getRulesMaxSize(smartItem,imageMeta);
+                smartItem.w = size.w;
+                smartItem.h = size.h;
+                smartItem.imageMeta = imageMeta;
+                next();
+            }else{
+                gd.openPng(url, function (err, png) {
+                    if (err) {
+                        next();
+                    } else {
+                        if (png) {
+                            imageMeta.image = png;
+                            imageMeta.width = png.width;
+                            imageMeta.height = png.height;
+                            size = self.getRulesMaxSize(smartItem,imageMeta);
+                            smartItem.w = size.w;
+                            smartItem.h = size.h;
+                            self._imageMetaCache[url] = imageMeta;
+                            smartItem.imageMeta = imageMeta;
+                            next();
+                        }
+                    }
+                });
+            }
         },function(){
             self.savePng(self.rulesResult,callback);
         });
@@ -74,10 +74,10 @@ var MergeImage = util.inherit(Object, {
             }
         });
 
-       return{
-           w: imageWidth,
-           h: imageHeight
-       }
+        return{
+            w: imageWidth,
+            h: imageHeight
+        }
     },
 
     savePng:function(result,callback){
@@ -110,9 +110,9 @@ var MergeImage = util.inherit(Object, {
                 },function(){
                     self.makeDirSync(path.dirname(spritesImageName)) ;
                     spritesImage.savePng(spritesImageName, 8, function (err) {
-
+                        next();
                     });
-                    next();
+
                 });
 
             }else{
@@ -144,24 +144,24 @@ var MergeImage = util.inherit(Object, {
             item,
             drawImages = [],
             sort;
-         if(this.type == 'smart'){
-              Packer = require('./growing-packer');
-              sort = function(a,b){
-                  return b.w * b.h - a.w * a.h;
-              }
-         }else{
-              Packer = require('./'+this.type+'-packer');
-              if(this.type == 'vertical'){
-                  sort = function(a,b){
-                      return a.h < b.h;
-                  }
-              }else{
-                  sort = function(a,b){
-                      return a.w < b.w;
-                  }
-              }
-         }
-         packer = new Packer();
+        if(this.type == 'smart'){
+            Packer = require('./growing-packer');
+            sort = function(a,b){
+                return b.w * b.h - a.w * a.h;
+            }
+        }else{
+            Packer = require('./'+this.type+'-packer');
+            if(this.type == 'vertical'){
+                sort = function(a,b){
+                    return a.h < b.h;
+                }
+            }else{
+                sort = function(a,b){
+                    return a.w < b.w;
+                }
+            }
+        }
+        packer = new Packer();
 
         for(var key in result){
             if (result.hasOwnProperty((key)) && key != 'length') {
@@ -173,9 +173,9 @@ var MergeImage = util.inherit(Object, {
                 }
             }
         }
-       if(newDrawImages.length){
-           drawImages.push(newDrawImages);
-       }
+        if(newDrawImages.length){
+            drawImages.push(newDrawImages);
+        }
 
         drawImages.forEach(function (drawItem) {
             drawItem.sort(sort);
