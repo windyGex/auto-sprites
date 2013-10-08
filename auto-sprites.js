@@ -1,6 +1,6 @@
 var path = require('path'),
     fs = require('fs'),
-    cssom = require('cssom'),
+    cssom = require('css-parser'),
     base64 = require('./base64'),
     ParseBackground = require('./parse-background'),
     util = require('pegasus').util,
