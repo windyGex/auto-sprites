@@ -1,7 +1,7 @@
 var VerticalPacker = function(){
 
 };
-//理论上垂直的合并只需要高度
+//自下而上的拼图
 VerticalPacker.prototype = {
 
     //[w:10,h:10]
