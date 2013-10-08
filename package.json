@@ -1,6 +1,6 @@
 {
   "name": "auto-sprites",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "一个用于天马的自动合并图片的模块",
   "main": "index.js",
   "scripts": {
