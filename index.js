@@ -26,7 +26,8 @@ var autoSprites = pegasus.createPipe({
 
             this.autoSprites.parse(function(data){
 
-                 res.write(new Buffer(data, 'binary'));
+                 res.clear()
+                    .write(new Buffer(data, 'binary'));
                  self.next();
             });
 

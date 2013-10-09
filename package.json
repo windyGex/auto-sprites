@@ -8,7 +8,8 @@
   },
   "dependencies":{
     "css-parser":"*",
-    "node-gd":"*"
+    "node-gd":"*",
+    "async":"*"
   },
   "repository": "https://github.com/windyGex/auto-sprites.git",
   "author": "windy ge",

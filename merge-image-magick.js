@@ -1,7 +1,6 @@
 var util = require('pegasus').util,
     path = require('path'),
     im = require('./image-magick'),
-    gd = require('node-gd'),
     fs = require('fs'),
     asyncUtil = require('./util');
 
@@ -37,25 +36,24 @@ var MergeImage = util.inherit(Object, {
                 smartItem.imageMeta = imageMeta;
                 next();
             }else{
-                gd.openPng(url, function (err, png) {
-                    if (err) {
+
+
+                im.identify(url,function(error,image){
+                    if(error){
                         next();
-                    } else {
-                        if (png) {
-                            imageMeta.image = png;
-                            imageMeta.width = png.width;
-                            imageMeta.height = png.height;
+                    } else{
+                        if(image){
+                            imageMeta = image;
                             size = self.getRulesMaxSize(smartItem,imageMeta);
                             smartItem.w = size.w;
                             smartItem.h = size.h;
                             self._imageMetaCache[url] = imageMeta;
                             smartItem.imageMeta = imageMeta;
-                            next();
                         }
+                        next();
                     }
+
                 });
-
-
             }
         },function(){
             self.savePng(self.rulesResult,callback);
@@ -89,59 +87,48 @@ var MergeImage = util.inherit(Object, {
 
 
         asyncUtil.forEach(resultPosition,function(index,position,next){
-
-            var spritesImage = self.createPng(position.root.w, position.root.h);
-            if (spritesImage) {
-
-                var imageUrl = self.path + self.fileName + '-'+self.type+'.png',
-                    spritesImageName = self.root + imageUrl;
+            var imageUrl =   self.path + self.fileName + '-'+self.type+'.png',
+                spritesImageName = self.root + imageUrl,
+                options = {};
+            options.width =   position.root.w;
+            options.height =  position.root.h ;
+            options.filepath = spritesImageName;
+            options.images = [];
 
                 asyncUtil.forEach(position,function(index,style,go){
 
                     var imageMeta = style.imageMeta,
-                        image;
+
                     if(imageMeta){
-                        image = imageMeta.image;
+
                         imageMeta.fit = style.fit;
                         imageMeta.hasDraw = true;
                         imageMeta.imageName = imageUrl;
                         self.replaceBackgroundInfo(imageUrl,style);
-                        image.copyResampled(spritesImage, imageMeta.fit.x,
-                            imageMeta.fit.y, 0, 0, image.width,
-                            image.height, image.width, image.height);
+
+                        options.images.push({
+                            path:imageMeta.path,
+                            width:imageMeta.width,
+                            height:imageMeta.height,
+                            cssx: imageMeta.fit.x,
+                            cssy: imageMeta.fit.y
+                        });
                     }
                     go();
                 },function(){
                     self.makeDirSync(path.dirname(spritesImageName)) ;
-                    spritesImage.savePng(spritesImageName, 8, function (err) {
+
+                    im.composite(options,function(error){
                         next();
                     });
-
                 });
 
-            }else{
-                next();
-            }
         },callback);
 
 
 
     },
 
-    createPng: function (w, h) {
-        var img = gd.createTrueColor(w, h);
-        if (img) {
-            transparent = //format == "gif" && img.colorAllocate(112, 121, 211) ||
-                img.colorAllocateAlpha(0, 0, 0, 127);
-            img.fill(0, 0, transparent);
-            img.colorTransparent(transparent);
-            //if(format == "png"){
-            img.alphaBlending(0);
-            img.saveAlpha(1);
-        }
-        //}
-        return img;
-    },
 
     getPosition:function(result){
         var Packer,
