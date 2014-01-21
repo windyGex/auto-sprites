@@ -1,6 +1,4 @@
-var util = require('pegasus').util,
-
-    path = require('path'),
+var path = require('path'),
 
     backgroundRegExp = [
         {
@@ -10,16 +8,31 @@ var util = require('pegasus').util,
             }
         },
         {
+            reg: /\?diagonal/,
+            callback: function (result) {
+                result['background-layout'] = 'diagonal';
+            }
+
+        },
+
+        {
             reg: /(url\(['"]?.*?['"]?\))/,
             callback: function (result, match) {
-                result['background-image'] = match[0];
+                //去除时间戳等其他标识
+                var timeStampReg = /(\?.*)\)$/,
+                    timeStampMatch = match[0].match(timeStampReg);
+                if (timeStampMatch) {
+                    result['background-image'] = match[0].replace(timeStampMatch[1], '');
+                } else {
+                    result['background-image'] = match[0];
+                }
             }
         },
         { //匹配background-position
             //50% 50%
             //left bottom
             //10px 10px
-            reg: /([0-1][0-9]{0,2}%|left|right|center|0|\d+px)\s+([0-1][0-9]{0,2}%|top|center|bottom|0|\d+px)/,
+            reg: /([0-1][0-9]{0,2}%|left|right|center|0|-\d+px)\s+([0-1][0-9]{0,2}%|top|center|bottom|0|-\d+px)/,
             callback: function (result, match) {
                 result['background-position'] = match[0];
             }
@@ -55,20 +68,26 @@ var util = require('pegasus').util,
             }
         },
         {
+            //If image url contains these words,may be make a mistake
+            //eg background:url(test_white.png) no-repeat;
+            //fix it
             reg: /qua|black|blue|fuchsia|gray|green|lime|maroon|navy|olive|purple|red|silver|teal|white|yellow|orange|transparent/,
             callback: function (result, match) {
                 result['background-color'] = match[0];
             }
         }
     ],
+    // (quote)(url)(extname)(stamp)(quote)
     bgImageReg = /url\s*\(\s*(["']?)([^"']+?\.(?:png)(?:\?[^"']+?)?)\1\s*\)/;
 
-var ParseRules = util.inherit(Object, {
+var ParseRules = function (config) {
+    this.cssRules = config.cssRules;
+    this.root = config.root;
+};
 
-    _initialize: function (config) {
-        this.cssRules = config.cssRules;
-        this.root = config.root;
-    },
+ParseRules.prototype = {
+
+    constructor: ParseRules,
     //获取background的信息
     //拆分成详细书写的格式
     // background-image
@@ -117,10 +136,8 @@ var ParseRules = util.inherit(Object, {
             //去除掉携带参数的情况，时间戳
             url = url.replace(/\?.*$/, '');
             //获取图片的真实路径
-            url = path.join(this.root, path.normalize(url));
-            if (url.indexOf('simg') > 0 || url.indexOf('wimg') > 0) {
-                return url;
-            }
+            url = this.root + url;
+            return url;
         }
     },
     //获取拼图方式的类型
@@ -142,7 +159,7 @@ var ParseRules = util.inherit(Object, {
         return layout;
     },
 
-    parse:function(){
+    parse: function () {
         return this.parseCSSRules(this.cssRules);
     },
 
@@ -165,7 +182,7 @@ var ParseRules = util.inherit(Object, {
             'diagonal': {
                 length: 0
             },
-            length:4
+            length: 4
         };
         cssRules.forEach(function (rule) {
             var style = rule.style, layout, imageURL;
@@ -184,7 +201,7 @@ var ParseRules = util.inherit(Object, {
                 }
 
                 if (style['background-image']) {
-                    if (style['background-repeat'] == 'repeat' || !style['background-repeat'] || (style['background-position'] && style['background-position'].match(/center/))) {
+                    if (style['background-repeat'] == 'repeat' || !style['background-repeat'] || (style['background-position'] && style['background-position'].match(/center|right|bottom/))) {
                         return;
                     }
                     layout = self.getLayoutType(style);
@@ -210,6 +227,8 @@ var ParseRules = util.inherit(Object, {
 
         return result;
     }
-});
+
+};
+
 
 module.exports = ParseRules;

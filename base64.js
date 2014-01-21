@@ -1,5 +1,6 @@
-var //gd = require('node-gd'),
-    fs = require('fs'),
+
+//提供base64的编码
+var fs = require('fs'),
     asyncUtil = require('./util');
 
 var base64 = {

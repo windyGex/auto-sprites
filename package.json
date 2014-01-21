@@ -1,17 +1,34 @@
 {
   "name": "auto-sprites",
-  "version": "0.0.3",
-  "description": "一个用于天马的自动合并图片的模块",
+  "version": "0.1.5",
+  "description": "自动合并图片的模块",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "dependencies":{
-    "css-parser":"*",
-    "node-gd":"*",
-    "async":"*"
+  "dependencies": {
+    "css-parser": "*",
+    "node-images": "*"
   },
-  "repository": "https://github.com/windyGex/auto-sprites.git",
-  "author": "windy ge",
-  "license": "BSD"
+  "bin": {
+    "sprites": "./bin/boot"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/windyGex/auto-sprites.git"
+  },
+  "author": {
+    "name": "windy ge"
+  },
+  "license": "BSD",
+  "bugs": {
+    "url": "https://github.com/windyGex/auto-sprites/issues"
+  },
+  "readme": "ERROR: No README data found!",
+  "_id": "auto-sprites@0.1.5",
+  "dist": {
+    "shasum": "c0d4ecc2fefe174c3bbd4730a62b8d76f10a4dde"
+  },
+  "_from": "auto-sprites@",
+  "_resolved": "https://registry.npmjs.org/auto-sprites/-/auto-sprites-0.1.5.tgz"
 }

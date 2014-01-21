@@ -20,7 +20,7 @@ var autoSprites = pegasus.createPipe({
                 data:res.body('utf-8'),
                 root:this.root,
                 path:this.path,
-                fileName:req.pathname,
+                fileName:req.path,
                 base64:this.base64
             });
 

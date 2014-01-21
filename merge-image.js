@@ -1,71 +1,66 @@
-var util = require('pegasus').util,
-    path = require('path'),
-    im = require('./image-magick'),
-    gd = require('node-gd'),
+var path = require('path'),
+    nodeImages = require('node-images'),
     fs = require('fs'),
     asyncUtil = require('./util');
 
+var MergeImage = function (config) {
+    this.rulesResult = config.rulesResult;
+    //标识合并的类型
+    this.type = config.type;
+    this._imageMetaCache = {};
+    this.path = config.path;
+    this.root = config.root;
+    this.fileName = config.fileName;
+};
 
-/**
- *
- *
- * url{
- *          url://
- *          cssRules://
- * }
- *
- */
-var MergeImage = util.inherit(Object, {
-    _initialize: function (config) {
-        this.rulesResult = config.rulesResult;
-        //标识合并的类型
-        this.type = config.type;
-        this._imageMetaCache = {};
-        this.path = config.path;
-        this.root = config.root;
-        this.fileName = config.fileName;
-    },
+MergeImage.prototype = {
+
+    constructor: MergeImage,
+
     parse: function (callback) {
         var self = this;
-        asyncUtil.forEach(this.rulesResult,function(url,smartItem,next){
-            var imageMeta = {},size;
-            if(self._imageMetaCache[url]){
+
+        asyncUtil.forEach(this.rulesResult, function (url, smartItem, next) {
+            var imageMeta = {}, size;
+
+            if (self._imageMetaCache[url]) {
                 imageMeta = self._imageMetaCache[url];
-                size = self.getRulesMaxSize(smartItem,imageMeta);
+                size = self.getRulesMaxSize(smartItem, imageMeta);
                 smartItem.w = size.w;
                 smartItem.h = size.h;
                 smartItem.imageMeta = imageMeta;
                 next();
-            }else{
-                gd.openPng(url, function (err, png) {
-                    if (err) {
+            } else {
+                try {
+                    console.log('Get css background ---> '+ url );
+                    var png = nodeImages(url);
+                    if (png) {
+                        imageMeta.image = png;
+                        imageMeta.width = png.size().width;
+                        imageMeta.height = png.size().height;
+                        size = self.getRulesMaxSize(smartItem, imageMeta);
+                        smartItem.w = size.w;
+                        smartItem.h = size.h;
+                        self._imageMetaCache[url] = imageMeta;
+                        smartItem.imageMeta = imageMeta;
                         next();
-                    } else {
-                        if (png) {
-                            imageMeta.image = png;
-                            imageMeta.width = png.width;
-                            imageMeta.height = png.height;
-                            size = self.getRulesMaxSize(smartItem,imageMeta);
-                            smartItem.w = size.w;
-                            smartItem.h = size.h;
-                            self._imageMetaCache[url] = imageMeta;
-                            smartItem.imageMeta = imageMeta;
-                            next();
-                        }
                     }
-                });
+                } catch (e) {
+                    next();
+                }
 
 
             }
-        },function(){
-            self.savePng(self.rulesResult,callback);
+        }, function () {
+            self.savePng(self.rulesResult, callback);
         });
     },
-    getRulesMaxSize:function(smartItem,imageMeta){
+    getRulesMaxSize: function (smartItem, imageMeta) {
         var w = 0,
             h = 0,
             imageWidth = imageMeta.width,
             imageHeight = imageMeta.height;
+
         smartItem.cssRules.forEach(function (cssRule) {
             w = parseInt(cssRule.width),
                 h = parseInt(cssRule.height);
@@ -83,103 +78,98 @@ var MergeImage = util.inherit(Object, {
         }
     },
 
-    savePng:function(result,callback){
+    savePng: function (result, callback) {
         var resultPosition = this.getPosition(result),
             self = this;
 
 
-        asyncUtil.forEach(resultPosition,function(index,position,next){
+        asyncUtil.forEach(resultPosition, function (index, position, next) {
+
 
             var spritesImage = self.createPng(position.root.w, position.root.h);
             if (spritesImage) {
 
-                var imageUrl = self.path + self.fileName + '-'+self.type+'.png',
-                    spritesImageName = self.root + imageUrl;
+                var imageUrl = self.path + self.fileName + '-' + self.type + '.png',
+                    spritesImageName  = self.root + imageUrl;
 
-                asyncUtil.forEach(position,function(index,style,go){
+               console.log('Save Image to ---> '+ spritesImageName );
+
+                asyncUtil.forEach(position, function (index, style, go) {
 
                     var imageMeta = style.imageMeta,
                         image;
-                    if(imageMeta){
+
+                    if (imageMeta) {
                         image = imageMeta.image;
                         imageMeta.fit = style.fit;
                         imageMeta.hasDraw = true;
                         imageMeta.imageName = imageUrl;
-                        self.replaceBackgroundInfo(imageUrl,style);
-                        image.copyResampled(spritesImage, imageMeta.fit.x,
-                            imageMeta.fit.y, 0, 0, image.width,
-                            image.height, image.width, image.height);
+                        self.replaceBackgroundInfo(imageUrl, style);
+
+                        spritesImage.draw(image, imageMeta.fit.x, imageMeta.fit.y);
                     }
                     go();
-                },function(){
-                    self.makeDirSync(path.dirname(spritesImageName)) ;
-                    spritesImage.savePng(spritesImageName, 8, function (err) {
-                        next();
-                    });
+                }, function () {
+                    self.makeDirSync(path.dirname(spritesImageName));
+
+                    spritesImage.save(spritesImageName);
+
+                    next();
 
                 });
 
-            }else{
+            } else {
                 next();
             }
-        },callback);
-
+        }, callback);
 
 
     },
 
     createPng: function (w, h) {
-        var img = gd.createTrueColor(w, h);
-        if (img) {
-            transparent = //format == "gif" && img.colorAllocate(112, 121, 211) ||
-                img.colorAllocateAlpha(0, 0, 0, 127);
-            img.fill(0, 0, transparent);
-            img.colorTransparent(transparent);
-            //if(format == "png"){
-            img.alphaBlending(0);
-            img.saveAlpha(1);
-        }
-        //}
-        return img;
+
+        return nodeImages(w, h);
     },
 
-    getPosition:function(result){
+    getPosition: function (result) {
         var Packer,
             hasDrawImages = [],
             newDrawImages = [],
             item,
             drawImages = [],
             sort;
-        if(this.type == 'smart'){
+        if (this.type == 'smart') {
             Packer = require('./growing-packer');
-            sort = function(a,b){
+            sort = function (a, b) {
                 return b.w * b.h - a.w * a.h;
             }
-        }else{
-            Packer = require('./'+this.type+'-packer');
-            if(this.type == 'vertical'){
-                sort = function(a,b){
+        } else {
+            Packer = require('./' + this.type + '-packer');
+            if (this.type == 'vertical') {
+                sort = function (a, b) {
                     return a.h < b.h;
                 }
-            }else{
-                sort = function(a,b){
+            } else {
+                sort = function (a, b) {
                     return a.w < b.w;
                 }
             }
         }
         packer = new Packer();
 
-        for(var key in result){
+        for (var key in result) {
             if (result.hasOwnProperty((key)) && key != 'length') {
                 item = result[key];
-                if (item.imageMeta && item.imageMeta.hasDraw) {
-                    hasDrawImages.push(item);
-                } else {
-                    newDrawImages.push(item);
+                if (item.imageMeta) {
+                    if (item.imageMeta.hasDraw) {
+                        hasDrawImages.push(item);
+                    } else {
+                        newDrawImages.push(item);
+                    }
                 }
             }
         }
-        if(newDrawImages.length){
+        if (newDrawImages.length) {
             drawImages.push(newDrawImages);
         }
 
@@ -196,7 +186,7 @@ var MergeImage = util.inherit(Object, {
 
     },
 
-    makeDirSync:function(dirpath, mode){
+    makeDirSync: function (dirpath, mode) {
         dirpath = path.resolve(dirpath);
 
         if (fs.existsSync(dirpath)) {
@@ -217,7 +207,12 @@ var MergeImage = util.inherit(Object, {
     replaceBackgroundInfo: function (imageUrl, style) {
 
         style.cssRules.forEach(function (rule) {
-            rule.setProperty('background-image', 'url(' + imageUrl + ')', '');
+
+            var bgImage = 'url(' + imageUrl + ')',
+                bgPosition,
+                bgColor = rule.getPropertyValue('background-color'),
+                bgRepeat = rule.getPropertyValue('background-repeat');
+
             var position = rule['background-position'];
             if (position) {
                 position = position.replace(/px/g, '');
@@ -227,12 +222,22 @@ var MergeImage = util.inherit(Object, {
             } else {
                 position = [0, 0];
             }
-            rule.setProperty('background-position', (position[0] - style.fit.x) + 'px ' +
-                (position[1] - style.fit.y) + 'px', '');
+
+            bgPosition =  (position[0] - style.fit.x) + 'px ' +
+                (position[1] - style.fit.y) + 'px';
+
+
+            //合并样式 替换成background的形式
+            rule.removeProperty('background-layout');
+            rule.removeProperty('background-position');
+            rule.removeProperty('background-color');
+            rule.removeProperty('background-image');
+            rule.removeProperty('background-repeat');
+            rule.setProperty('background',bgColor+' '+bgImage+' '+bgPosition+' '+bgRepeat);
+
         });
     }
 
-
-});
+};
 
 module.exports = MergeImage;
