@@ -89,8 +89,8 @@ MergeImage.prototype = {
             var spritesImage = self.createPng(position.root.w, position.root.h);
             if (spritesImage) {
 
-                var imageUrl = self.path + self.fileName + '-' + self.type + '.png',
-                    spritesImageName  = self.root + imageUrl;
+                var imageUrl = path.join(self.path , self.fileName + '-' + self.type + '.png').split(path.sep).join('/'),
+                    spritesImageName  = path.join( self.root , imageUrl);
 
                console.log('Save Image to ---> '+ spritesImageName );
 
@@ -98,7 +98,6 @@ MergeImage.prototype = {
 
                     var imageMeta = style.imageMeta,
                         image;
-
                     if (imageMeta) {
                         image = imageMeta.image;
                         imageMeta.fit = style.fit;

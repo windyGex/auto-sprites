@@ -136,7 +136,7 @@ ParseRules.prototype = {
             //去除掉携带参数的情况，时间戳
             url = url.replace(/\?.*$/, '');
             //获取图片的真实路径
-            url = this.root + url;
+            url = path.join(this.root, path.normalize(url));
             return url;
         }
     },
