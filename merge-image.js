@@ -210,7 +210,9 @@ MergeImage.prototype = {
             var bgImage = 'url(' + imageUrl + ')',
                 bgPosition,
                 bgColor = rule.getPropertyValue('background-color'),
-                bgRepeat = rule.getPropertyValue('background-repeat');
+                bgRepeat = rule.getPropertyValue('background-repeat'),
+                positionX,
+                positionY;
 
             var position = rule['background-position'];
             if (position) {
@@ -222,8 +224,11 @@ MergeImage.prototype = {
                 position = [0, 0];
             }
 
-            bgPosition =  (position[0] - style.fit.x) + 'px ' +
-                (position[1] - style.fit.y) + 'px';
+            positionX = (position[0] - style.fit.x);
+            positionY = (position[1] - style.fit.y);
+
+            bgPosition = (positionX == 0 ? 0 + ' ' : positionX + 'px ') +
+                (positionY == 0 ? 0  : positionY + 'px');
 
 
             //合并样式 替换成background的形式

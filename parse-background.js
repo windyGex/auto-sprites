@@ -16,6 +16,14 @@ var path = require('path'),
         },
 
         {
+            reg: /\?ignore/,
+            callback: function (result) {
+                result['background-layout'] = 'ignore';
+            }
+
+        },
+
+        {
             reg: /(url\(['"]?.*?['"]?\))/,
             callback: function (result, match) {
                 //去除时间戳等其他标识
@@ -32,7 +40,7 @@ var path = require('path'),
             //50% 50%
             //left bottom
             //10px 10px
-            reg: /([0-1][0-9]{0,2}%|left|right|center|0|-\d+px)\s+([0-1][0-9]{0,2}%|top|center|bottom|0|-\d+px)/,
+            reg: /(-?\d+%|left|right|center|0|-?\d+px)\s+(-?\d+%|top|center|bottom|0|-?\d+px)/,
             callback: function (result, match) {
                 result['background-position'] = match[0];
             }
@@ -56,13 +64,13 @@ var path = require('path'),
         },
         {
             //匹配rgb的颜色的正则
-            reg: /rgb\([0-9]{0,3}\,[0-9]{0,3}\,[0-9]{0,3}\)/,
+            reg: /rgb\s*\(\s*[0-9]{0,3}\s*\,\s*[0-9]{0,3}\s*\,\s*[0-9]{0,3}\s*\)/,
             callback: function (result, match) {
                 result['background-color'] = match[0];
             }
         },
         { //匹配rgba的颜色的正则
-            reg: /rgba\([0-9]{0,3}\,[0-9]{0,3}\,[0-9]{0,3}\,0?\.[0-9]{1}\)/,
+            reg: /rgba\s*\(\s*[0-9]{0,3}\s*\,\s*[0-9]{0,3}\s*\,\s*[0-9]{0,3}\s*\,\s*0?\.[0-9]{1}\s*\)/,
             callback: function (result, match) {
                 result['background-color'] = match[0];
             }
@@ -77,8 +85,8 @@ var path = require('path'),
             }
         }
     ],
-    // (quote)(url)(extname)(stamp)(quote)
-    bgImageReg = /url\s*\(\s*(["']?)([^"']+?\.(?:png)(?:\?[^"']+?)?)\1\s*\)/;
+// (quote)(url)(extname)(stamp)(quote)
+    bgImageReg = /url\s*\(\s*(["']?)([^"']+?\.(?:png|gif|jpeg|jpg)(?:\?[^"']+?)?)\1\s*\)/;
 
 var ParseRules = function (config) {
     this.cssRules = config.cssRules;
@@ -95,13 +103,14 @@ ParseRules.prototype = {
     // background-color
     // background-repeat
     getBackgroundInfo: function (background) {
-        var result = {};
+        var result = {}, backgroundReplace = background;
         backgroundRegExp.forEach(function (regExpItem) {
             var regExp = regExpItem.reg,
                 match,
                 callback = regExpItem.callback;
-            if (match = background.match(regExp)) {
+            if (match = backgroundReplace.match(regExp)) {
                 if (callback(result, match) === false) {
+                    backgroundReplace = backgroundReplace.replace(regExp, '');
                     return false;
                 }
             }
@@ -201,7 +210,12 @@ ParseRules.prototype = {
                 }
 
                 if (style['background-image']) {
-                    if (style['background-repeat'] == 'repeat' || !style['background-repeat'] || (style['background-position'] && style['background-position'].match(/center|right|bottom/))) {
+                    if (style['background-repeat'] == 'repeat'
+                        || !style['background-repeat']
+                        || (style['background-position'] && style['background-position'].match(/center|right|bottom/))
+                        || style['background-layout'] == 'ignore'
+                        ) {
+                        style.removeProperty('background-layout');
                         return;
                     }
                     layout = self.getLayoutType(style);
