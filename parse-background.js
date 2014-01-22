@@ -110,9 +110,9 @@ ParseRules.prototype = {
                 callback = regExpItem.callback;
             if (match = backgroundReplace.match(regExp)) {
                 if (callback(result, match) === false) {
-                    backgroundReplace = backgroundReplace.replace(regExp, '');
                     return false;
                 }
+                backgroundReplace = backgroundReplace.replace(regExp, '');
             }
         });
         return result;
