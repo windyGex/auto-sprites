@@ -135,6 +135,9 @@ ParseRules.prototype = {
         var url = bgImage.match(bgImageReg);
         if (url) {
             url = url[2];
+            if(url.indexOf('http') == 0){
+                return false;
+            }
             //去除掉http引用的情况
             url = url.replace(/(http:\/\/.*)(\/simg\/.*)/, function ($1, $2, $3) {
                 return $3;

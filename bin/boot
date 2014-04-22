@@ -6,7 +6,7 @@ var AutoSprites = require('../auto-sprites'),
 
 var walker = function (filePath, callback) {
     var walkerSub = function (pathStr) {
-        var directoryList = fs.readdirSync(pathStr);
+        var directoryList = fs.readdirSync(pathStr,'binary');
         directoryList.forEach(function (item) {
             var pathJoinStr = path.join(pathStr, item);
 
@@ -31,11 +31,11 @@ var getAllFilesData = function(source){
     walker(source,function(file,name){
         fileData.push(fs.readFileSync(file));
         fileName.push(name);
-        files.push(file);
+        files.push(path.relative(source,file));
     });
     return {
         name:fileName,
-
+        files: files,
         data:fileData
     };
 };
@@ -68,14 +68,15 @@ function main(args) {
         source = args[1],
         target = args[2],
         imageSaveFolder = args[3],
-        base64 = args[4] || false,
+        base64 = args[4] == 'true' ? true : false,
         //文件级别还是文件夹级别
         level = args[5] || 'file';
 
     if(level === 'file'){
 
          walker(path.join(root,source),function(file,name){
-             var data = fs.readFileSync(file,'binary');
+             var data = fs.readFileSync(file,'binary'),
+                 name = path.relative(path.join(root,source),file);
              new AutoSprites({
                  data:data,
                  root:root,
@@ -102,7 +103,7 @@ function main(args) {
                 data = data.split('/*@split-auto-sprites@*/');
 
                 data.forEach(function(cssDataItem,index){
-                   var writeFile = path.join(root,target,files.name[index]);
+                   var writeFile = path.join(root,target,files.files[index]);
                     makeDirSync(path.dirname(writeFile));
                     fs.writeFileSync(writeFile,cssDataItem,'binary');
                 });
