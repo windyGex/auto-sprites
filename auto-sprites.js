@@ -66,7 +66,7 @@ function parseCSSRules(cssRules) {
 var AutoSprites = function (config) {
     this.data = config.data;
     this.path = config.path;
-    this.fileName = this.getFileName(config.fileName);
+    this.fileName = config.fileName;
     this.root = config.root;
     this.base64 = config.base64 || false;
 };
@@ -74,14 +74,7 @@ var AutoSprites = function (config) {
 AutoSprites.prototype = {
 
     constructor: AutoSprites,
-    /**
-     * Get image save name
-     * @param fileName
-     * @returns {*}
-     */
-    getFileName: function (fileName) {
-        return  crypto.createHash('md5').update(fileName).digest("hex");
-    },
+
     /**
      * Parse css then generate css sprites
      * @param callback {Function} After generate css sprites execute callback
@@ -110,7 +103,7 @@ AutoSprites.prototype = {
                     type: type,
                     rulesResult: object
                 }).parse(function () {
-                        next();
+                    next();
                 });
             }
         }, function () {

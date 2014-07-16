@@ -1,5 +1,7 @@
 var path = require('path'),
 
+// from peaches
+// https://github.com/sliuqin/peaches.
     backgroundRegExp = [
         {
             reg: /none/,
@@ -124,7 +126,7 @@ ParseRules.prototype = {
                 if (style[key]) {
                     continue;
                 }
-                style.setProperty(key, result[key], "");
+                style.setProperty(key, result[key], '');
             }
         }
         style.removeProperty('background');
@@ -138,13 +140,6 @@ ParseRules.prototype = {
             if(url.indexOf('http') == 0){
                 return false;
             }
-            //去除掉http引用的情况
-            url = url.replace(/(http:\/\/.*)(\/simg\/.*)/, function ($1, $2, $3) {
-                return $3;
-            });
-            url = url.replace(/(http:\/\/.*)(\/wimg\/.*)/, function ($1, $2, $3) {
-                return $3;
-            });
             //去除掉携带参数的情况，时间戳
             url = url.replace(/\?.*$/, '');
             //获取图片的真实路径
@@ -244,7 +239,6 @@ ParseRules.prototype = {
 
         return result;
     }
-
 };
 
 

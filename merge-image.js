@@ -1,7 +1,9 @@
 var path = require('path'),
     nodeImages = require('node-images'),
     fs = require('fs'),
-    asyncUtil = require('./util');
+    asyncUtil = require('./util'),
+    crypto = require('crypto');
+    ;
 
 var MergeImage = function (config) {
     this.rulesResult = config.rulesResult;
@@ -31,7 +33,7 @@ MergeImage.prototype = {
                 smartItem.imageMeta = imageMeta;
                 next();
             } else {
-                try {
+               try {
                     console.log('Get css background ---> '+ url );
                     var png = nodeImages(url);
                     if (png) {
@@ -46,6 +48,7 @@ MergeImage.prototype = {
                         next();
                     }
                 } catch (e) {
+                    console.log(e.message);
                     next();
                 }
 
@@ -89,10 +92,11 @@ MergeImage.prototype = {
             var spritesImage = self.createPng(position.root.w, position.root.h);
             if (spritesImage) {
 
-                var imageUrl = path.join(self.path , self.fileName + '-' + self.type + '.png').split(path.sep).join('/'),
+
+                var imageUrl = path.join(self.path , crypto.createHash('md5').update(self.fileName + '-' + self.type).digest("hex").substring(0,8) + '.png').split(path.sep).join('/'),
                     spritesImageName  = path.join( self.root , imageUrl);
 
-               console.log('Save Image to ---> '+ spritesImageName );
+                console.log('Save Image to ---> '+ spritesImageName );
 
                 asyncUtil.forEach(position, function (index, style, go) {
 

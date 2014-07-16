@@ -1,8 +1,9 @@
-var pegasus = require('pegasus'),
+var //pegasus = require('pegasus'),
     path = require('path'),
     AutoSprites = require('./auto-sprites');
 
-var autoSprites = pegasus.createPipe({
+var autoSprites = {}
+/*pegasus.createPipe({
     _initialize:function(config){
         this.root = config.root;
         this.path = config.path;
@@ -37,6 +38,10 @@ var autoSprites = pegasus.createPipe({
         }
 
     }
-});
+});*/
 
-module.exports = autoSprites;
+
+exports.autoSprites = autoSprites;
+
+exports.AutoSprites = AutoSprites;
+
